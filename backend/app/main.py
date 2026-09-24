@@ -46,6 +46,16 @@ else:
         allow_headers=["*"],
     )
 
+@app.get("/")
+def root():
+    return {
+        "service": "CityPulse Backend API",
+        "status": "operational",
+        "docs_url": "/docs",
+        "health_url": "/api/health",
+        "zones_url": "/api/zones"
+    }
+
 class ConnectionManager:
     def __init__(self):
         self.connection_zones: Dict[WebSocket, str] = {}
