@@ -11,6 +11,7 @@ import OutlookSevenDay from './components/OutlookSevenDay';
 import ScenarioSimulatorBar from './components/ScenarioSimulatorBar';
 import GrievancesPanel from './components/GrievancesPanel';
 import PredictiveTimeline from './components/PredictiveTimeline';
+import { API_BASE_URL, getWebSocketUrl } from './config/api';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('search'); // 'search' | 'dashboard'
@@ -33,8 +34,8 @@ export default function App() {
     const fetchInit = async () => {
       try {
         const [zonesRes, stateRes] = await Promise.all([
-          fetch('/api/zones'),
-          fetch(`/api/state?zone_id=${selectedZoneId}`)
+          fetch(`${API_BASE_URL}/zones`),
+          fetch(`${API_BASE_URL}/state?zone_id=${selectedZoneId}`)
         ]);
 
         if (zonesRes.ok && stateRes.ok) {
@@ -56,8 +57,7 @@ export default function App() {
 
   // WebSocket Live Connection
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/live?zone_id=${selectedZoneId}`;
+    const wsUrl = getWebSocketUrl(selectedZoneId);
     let ws;
 
     const connectWs = () => {
@@ -87,7 +87,7 @@ export default function App() {
     // Fallback polling every 4 seconds
     const pollInterval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/state?zone_id=${selectedZoneIdRef.current}`);
+        const res = await fetch(`${API_BASE_URL}/state?zone_id=${selectedZoneIdRef.current}`);
         if (res.ok) {
           const data = await res.json();
           if (data.zone.zone_id === selectedZoneIdRef.current) {
@@ -118,7 +118,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch(`/api/state?zone_id=${zoneId}`);
+      const res = await fetch(`${API_BASE_URL}/state?zone_id=${zoneId}`);
       if (res.ok) {
         const data = await res.json();
         setState(data);
@@ -132,7 +132,7 @@ export default function App() {
   const handleSelectScenario = async (scId) => {
     setScenario(scId);
     try {
-      const res = await fetch('/api/scenario', {
+      const res = await fetch(`${API_BASE_URL}/scenario`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenario: scId, zone_id: selectedZoneIdRef.current })
@@ -149,12 +149,12 @@ export default function App() {
   // Feed toggle handler
   const handleToggleFeed = async (feedKey, isOnline) => {
     try {
-      await fetch('/api/feed-status', {
+      await fetch(`${API_BASE_URL}/feed-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feed_key: feedKey, is_online: isOnline })
       });
-      const res = await fetch(`/api/state?zone_id=${selectedZoneId}`);
+      const res = await fetch(`${API_BASE_URL}/state?zone_id=${selectedZoneId}`);
       if (res.ok) {
         const data = await res.json();
         setState(data);

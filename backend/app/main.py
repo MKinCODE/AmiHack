@@ -23,13 +23,28 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+import os
+
+# Robust CORS Configuration for Vercel, Render, and Local Dev
+allowed_origins_raw = os.getenv("ALLOWED_ORIGINS", "").strip()
+if allowed_origins_raw:
+    origins = [o.strip() for o in allowed_origins_raw.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    # Automatically allows any Vercel deployment (*.vercel.app), Render (*.onrender.com), and localhost ports
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|.*\.vercel\.app|.*\.onrender\.com)(:\d+)?$",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 class ConnectionManager:
     def __init__(self):
