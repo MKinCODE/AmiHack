@@ -2,7 +2,7 @@
 
 > **Hackathon MVP Submission**: An AI-augmented, resident-facing civic intelligence platform that continuously fuses heterogeneous municipal feeds, calculates an explainable **Civic Pulse (0–100)**, detects spatial-temporal anomalies, renders a **live Calamity & Inundation Heatmap**, and generates non-technical grounded briefings understandable in under **10 seconds**.
 
-Built strictly in accordance with PRD specifications for Jaipur municipal corridors (*C-Scheme & MI Road*, *Pink City Heritage*, *Malviya Nagar*, *Mansarovar*, and *Vaishali Nagar*).
+Built strictly in accordance with municipal corridor specifications for Jaipur (*C-Scheme & MI Road*, *Pink City Heritage*, *Malviya Nagar*, *Mansarovar*, and *Vaishali Nagar*).
 
 ---
 
@@ -15,6 +15,25 @@ Built strictly in accordance with PRD specifications for Jaipur municipal corrid
 | **3. Non-Technical Glanceability** | **10-Second Executive Safety Banner** (`🟢 Safe`, `🟡 Pooling`, `🔴 Danger`), Celsius-first atmospheric cards, and native MapLibre GL Calamity Heatmap. | **Exceeds** |
 | **4. Grounded Plain-Language Summary** | 4-Pillar resident briefing powered by **NVIDIA NIM (`meta/llama-3.1-70b-instruct`)** with instant deterministic calibrated fallback (Zero-Key guarantee). | **Exceeds** |
 | **5. Advanced ML & Intelligence** | **Multi-Interval Time-Series ML Predictive Engine** ($T-45\text{m}$ to $+60\text{m}$), feature-attribution risk drivers, decaying confidence curves, and full scenario simulator. | **Advanced Winning Tier** |
+
+---
+
+## ⏱️ Keeping Render Backend Awake (UptimeRobot / Cron)
+
+Render free-tier web services automatically spin down after 15 minutes of inactivity. To keep your CityPulse backend 100% active 24/7 with zero spin-up cold start:
+
+* **Ping Endpoint**: `https://your-backend.onrender.com/ping` (or `/health`, `/`)
+* **UptimeRobot Setup**:
+  1. Go to [UptimeRobot](https://uptimerobot.com) and click **+ Add New Monitor**.
+  2. **Monitor Type**: `HTTP(s)`
+  3. **Friendly Name**: `CityPulse Backend`
+  4. **URL**: `https://<your-render-app-name>.onrender.com/ping`
+  5. **Monitoring Interval**: Every `5 minutes` or `10 minutes`
+  6. Click **Create Monitor**.
+* **Instant Response**: Returns `200 OK` in `< 5ms` with zero CPU overhead:
+  ```json
+  {"service": "CityPulse Backend API", "status": "operational"}
+  ```
 
 ---
 
@@ -125,38 +144,39 @@ Judges can step through real-world municipal scenarios using the bottom-right fl
 
 ---
 
-## 💻 Quickstart (Run Locally in 60 Seconds)
+## 🚀 Cloud Deployment (Render & Vercel)
 
-### Prerequisites
-* **Python 3.10+** (Tested on Python 3.13)
-* **Node.js 18+** (Tested on Node.js 24)
+### Backend on Render
+1. Connect repository `MKinCODE/AmiHack` to Render as a **Web Service**.
+2. **Root Directory**: `backend`
+3. **Build Command**: `pip install -r requirements.txt`
+4. **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+### Frontend on Vercel
+1. Import repository `MKinCODE/AmiHack` into Vercel.
+2. **Root Directory**: `frontend`
+3. **Environment Variable**:
+   * `VITE_BACKEND_URL` = `https://your-citypulse-backend.onrender.com`
+
+---
+
+## 💻 Quickstart (Run Locally)
 
 ### 1. Backend Setup
 ```bash
 cd backend
-
-# Install dependencies
 pip install -r requirements.txt
-
-# (Optional) Add NVIDIA API Key to backend/.env
-# NVIDIA_API_KEY=nvapi-your-key-here
-
-# Start FastAPI server
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 * **API Documentation**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 * **Health Check**: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+* **Ping Endpoint**: [http://127.0.0.1:8000/ping](http://127.0.0.1:8000/ping)
 * **Live WebSocket**: `ws://127.0.0.1:8000/ws/live`
 
 ### 2. Frontend Setup
-In a second terminal:
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start Vite dev server
 npm run dev
 ```
 * **Web App URL**: [http://localhost:5173/](http://localhost:5173/)
@@ -174,10 +194,3 @@ npm run dev
    * Observe the 10-Second Banner update instantly.
 5. **Inspect the Time-Series ML Timeline**: Click on the `+30m` or `+60m` cards to inspect the projected pulse, transit delays, and feature risk drivers.
 6. **Privacy & Standards**: Verify zero personal identifiers are collected or exposed.
-
----
-
-## 📜 Standards & Design Principles
-* **Non-Blocking Architecture**: Fast background thread workers ensure `< 50ms` response times without blocking the event loop.
-* **Privacy First**: All 311 citizen reports and emergency calls are anonymized with zero PII.
-* **Strict Separation of Concerns**: Clean isolation between **NOW** (verified ground observations) and **NEXT** (near-term forecast models).

@@ -47,6 +47,8 @@ else:
     )
 
 @app.get("/")
+@app.get("/ping")
+@app.get("/health")
 def root():
     return {
         "service": "CityPulse Backend API",
